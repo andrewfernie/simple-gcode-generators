@@ -152,7 +152,7 @@ class Application(Frame):
         self.StepOver = Entry(self, width=10, textvariable=self.StepOverVar)
         self.StepOver.grid(row=4, column=3, sticky=W)
         
-        self.st10 = Label(self, text='Safe Z hight')
+        self.st10 = Label(self, text='Safe Z height')
         self.st10.grid(row=5, column=0, sticky=E)
         self.SafeZVar = StringVar()
         self.Leadin = Entry(self, width=10, textvariable=self.SafeZVar)
@@ -271,9 +271,16 @@ class Application(Frame):
             self.g_code.insert(END, 'M3 ')
         if len(self.FeedrateVar.get())>0:
             self.g_code.insert(END, 'F%s\n' % (self.FeedrateVar.get()))
+
+        # Set absolute mode
+        self.g_code.insert(END, 'G90\n')
+        
         for i in range(self.NumOfZSteps):
-            self.g_code.insert(END, 'G0 X%.4f Y%.4f\nZ%.4f\n' \
-                %(self.X_Start, self.Y_Start,z))
+            self.g_code.insert(END, 'G0 Z%.4f\n' \
+                %(z))
+            self.g_code.insert(END, 'G0 X%.4f Y%.4f\n' \
+                %(self.X_Start, self.Y_Start))
+
             # Make sure the Z position does not exceed the total depth
             if self.Z_Step>0 and (self.Z_Total+self.Z_Position) >= self.Z_Step:
                 self.Z_Position = self.Z_Position - self.Z_Step
