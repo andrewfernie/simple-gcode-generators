@@ -273,12 +273,12 @@ class Application(Frame):
             self.g_code.insert(END, 'F%s\n' % (self.FeedrateVar.get()))
 
         # Go to safe Z position
-        self.g_code.insert(END, 'G1 Z%s\n' % (self.SafeZVar.get()))
+        self.g_code.insert(END, 'G0 Z%s\n' % (self.SafeZVar.get()))
 
         for i in range(self.NumOfZSteps):
 
-            self.g_code.insert(END, 'G0 X%.4f Y%.4f\nZ%.4f\n' \
-                %(self.X_Start, self.Y_Start,z))
+            self.g_code.insert(END, 'G0 X%.4f Y%.4f\n' \
+                %(self.X_Start, self.Y_Start))
 
             # Make sure the Z position does not exceed the total depth
             if self.Z_Step>0 and (self.Z_Total+self.Z_Position) >= self.Z_Step:
@@ -309,7 +309,7 @@ class Application(Frame):
                         self.g_code.insert(END, 'G0 Y%.4f\n' % (self.Y_Position))
 
             # Go to safe Z position
-            self.g_code.insert(END, 'G1 Z%s\n' % (self.SafeZVar.get()))
+            self.g_code.insert(END, 'G0 Z%s\n' % (self.SafeZVar.get()))
 
         if len(self.SpindleRPMVar.get())>0:
             self.g_code.insert(END, 'M5\n')
