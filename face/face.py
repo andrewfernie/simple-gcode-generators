@@ -152,7 +152,7 @@ class Application(Frame):
         self.StepOver = Entry(self, width=10, textvariable=self.StepOverVar)
         self.StepOver.grid(row=4, column=3, sticky=W)
         
-        self.st10 = Label(self, text='Safe Z height')
+        self.st10 = Label(self, text='Safe Z hight')
         self.st10.grid(row=5, column=0, sticky=E)
         self.SafeZVar = StringVar()
         self.Leadin = Entry(self, width=10, textvariable=self.SafeZVar)
@@ -272,14 +272,13 @@ class Application(Frame):
         if len(self.FeedrateVar.get())>0:
             self.g_code.insert(END, 'F%s\n' % (self.FeedrateVar.get()))
 
-        # Set absolute mode
-        self.g_code.insert(END, 'G90\n')
-        
+        # Go to safe Z position
+        self.g_code.insert(END, 'G1 Z%s\n' % (self.SafeZVar.get()))
+
         for i in range(self.NumOfZSteps):
-            self.g_code.insert(END, 'G0 Z%.4f\n' \
-                %(z))
-            self.g_code.insert(END, 'G0 X%.4f Y%.4f\n' \
-                %(self.X_Start, self.Y_Start))
+
+            self.g_code.insert(END, 'G0 X%.4f Y%.4f\nZ%.4f\n' \
+                %(self.X_Start, self.Y_Start,z))
 
             # Make sure the Z position does not exceed the total depth
             if self.Z_Step>0 and (self.Z_Total+self.Z_Position) >= self.Z_Step:
@@ -287,6 +286,7 @@ class Application(Frame):
             else:
                 self.Z_Position = -self.Z_Total
             self.g_code.insert(END, 'G1 Z%.4f\n' % (self.Z_Position))
+
             self.X_Position = self.X_Start
             self.Y_Position = self.Y_Start
 
@@ -307,7 +307,10 @@ class Application(Frame):
                 else:
                     if self.Y_Position < self.Y_End:
                         self.g_code.insert(END, 'G0 Y%.4f\n' % (self.Y_Position))
-        self.g_code.insert(END, 'G0 Z%.4f\n'% z)
+
+            # Go to safe Z position
+            self.g_code.insert(END, 'G1 Z%s\n' % (self.SafeZVar.get()))
+
         if len(self.SpindleRPMVar.get())>0:
             self.g_code.insert(END, 'M5\n')
         self.g_code.insert(END, 'G0 X0.0000 Y0.0000\nM2 (End of File)\n')
