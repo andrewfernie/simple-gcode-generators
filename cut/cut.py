@@ -1,9 +1,12 @@
 #!/usr/bin/env python
-version = '1.5.0'
+version = '1.0.0'
 # python cut.py
-# Dec 4 2007
+# December 1, 2020
 # Cut G-Code Generator for LinuxCNC
 """
+
+    Adapted from face.py by Andrew Fernie. Same rights as provided with face.py described below.
+
     Copyright (C) <2008>  <John Thornton>
 
     This program is free software: you can redistribute it and/or modify
@@ -31,23 +34,9 @@ version = '1.5.0'
     To use with LinuxCNC see the instructions at: 
     https://github.com/linuxcnc/simple-gcode-generators
 
-2008-02-24	Rick Calder "rick at llamatrails dot com"
-	Added option/code to select X0-Y0 position: Left-Rear or Left-Front
-	To change the default, change line 171: 4=Left-Rear, 5=Left-Front
-	
-2010-01-06	Brad Hanken "chembal at gmail dot com"
-	Added option and code to change the lead in and lead out amount
-	If nothing is entered, the old calculated value of tool radius + .1 is still used
 
-2012-07-13 John Thornton
-  Added graceful exit from cut.py if opened in Axis
-
-2018-12-30 Aglef Kaiser
-	Added load and save preferences (all attributes). The default NC File directory
-	is the home directory. After saving a gcode file, this directory is the new
-	NC File directory and can be saved with save preferences.
-	Added safe z height.
 """
+
 from Tkinter import *
 from tkFileDialog import *
 from math import *
@@ -56,6 +45,7 @@ from ConfigParser import *
 from decimal import *
 import tkMessageBox
 import os
+
 
 IN_AXIS = os.environ.has_key("AXIS_PROGRESS_BAR")
 
@@ -110,17 +100,36 @@ class Application(Frame):
         self.PartLength.focus_set()
 
         self.st6 = Label(self, text='Depth of Each Cut ')
-        self.st6.grid(row=3, column=0, sticky=E)
+        self.st6.grid(row=2, column=0, sticky=E)
         self.DepthOfCutVar = StringVar()
         self.DepthOfCut = Entry(self, width=10, textvariable=self.DepthOfCutVar)
-        self.DepthOfCut.grid(row=3, column=1, sticky=W)
+        self.DepthOfCut.grid(row=2, column=1, sticky=W)
 
         self.st5 = Label(self, text='Amount to Remove *')
-        self.st5.grid(row=4, column=0, sticky=E)
+        self.st5.grid(row=3, column=0, sticky=E)
         self.TotalToRemoveVar = StringVar()
         self.TotalToRemove = Entry(self, width=10, textvariable=self.TotalToRemoveVar)
-        self.TotalToRemove.grid(row=4, column=1, sticky=W)
+        self.TotalToRemove.grid(row=3, column=1, sticky=W)
+        
+        self.st10 = Label(self, text='Safe Z height')
+        self.st10.grid(row=4, column=0, sticky=E)
+        self.SafeZVar = StringVar()
+        self.Leadin = Entry(self, width=10, textvariable=self.SafeZVar)
+        self.Leadin.grid(row=4, column=1, sticky=W)
 
+        CutAlongOptions=[('X Cut',0),('Y Cut',1)]
+        self.CutAlongVar=IntVar()
+        for text, value in CutAlongOptions:
+            if(value == 0):
+                Radiobutton(self, text=text,value=value,
+                    variable=self.CutAlongVar,indicatoron=0,width=6,)\
+                    .grid(row=5, column=value, sticky = E)
+            else:
+                Radiobutton(self, text=text,value=value,
+                    variable=self.CutAlongVar,indicatoron=0,width=6,)\
+                    .grid(row=5, column=value, sticky = W)
+
+        self.CutAlongVar.set(0)
         
         self.st3 = Label(self, text='Tool Diameter ')
         self.st3.grid(row=1, column=2, sticky=E)
@@ -139,12 +148,13 @@ class Application(Frame):
         self.SpindleRPMVar = StringVar()
         self.SpindleRPM = Entry(self, width=10, textvariable=self.SpindleRPMVar)
         self.SpindleRPM.grid(row=3, column=3, sticky=W)
-        
-        self.st10 = Label(self, text='Safe Z height')
-        self.st10.grid(row=5, column=0, sticky=E)
-        self.SafeZVar = StringVar()
-        self.Leadin = Entry(self, width=10, textvariable=self.SafeZVar)
-        self.Leadin.grid(row=5, column=1, sticky=W)
+                
+        self.st8 = Label(self, text='Lead In / Lead Out')
+        self.st8.grid(row=4, column=2, sticky=E)
+        self.LeadinVar = StringVar()
+        self.Leadin = Entry(self, width=10, textvariable=self.LeadinVar)
+        self.Leadin.grid(row=4, column=3, sticky=W)
+
         
         self.spacer3 = Label(self, text='')
         self.spacer3.grid(row=6, column=0, columnspan=4)
@@ -210,20 +220,24 @@ class Application(Frame):
         """ Generate the G-Code for cutting a part 
         assume that the part is at X0 to X+, Y0 to Y-"""
         D=Decimal
-        z=float(self.SafeZVar.get())
+
         # Calculate the start position 1/2 the tool diameter + 0.100 in X and Stepover in Y
         self.ToolRadius = self.FToD(self.ToolDiameterVar.get())/2
 
-        self.X_Start = 0
-        self.X_End = self.FToD(self.CutLengthVar.get())
-
-        if self.HomeVar.get()==4:
-        	self.Y_Start = 0
-        	self.Y_End = 0
+       # Calculate the start position 1/2 the tool diameter + 0.100 in X and Stepover in Y
+        self.ToolRadius = self.FToD(self.ToolDiameterVar.get())/2
+        
+        if len(self.LeadinVar.get())>0:
+            self.LeadIn = self.FToD(self.LeadinVar.get())
         else:
-        	self.Y_Start = 0
-        	self.Y_End = 0
-
+            self.LeadIn = self.ToolRadius + D('0.1')
+        
+        self.X_Start = -(self.LeadIn)
+        self.X_End = self.FToD(self.CutLengthVar.get()) + self.LeadIn
+        
+        self.Y_Start = 0.0
+        self.Y_End = 0.0
+        
         self.Z_Total = self.FToD(self.TotalToRemoveVar.get())
         if len(self.DepthOfCutVar.get())>0:
             self.Z_Step = self.FToD(self.DepthOfCutVar.get())
@@ -241,18 +255,25 @@ class Application(Frame):
         else:
             self.g_code.insert(END, 'G21\n')                    # mm
 
-        self.g_code.insert(END, 'G90\n')                      # Absolute movement mode
+        self.g_code.insert(END, 'G90\n')                        # Absolute movement mode
 
+        # Set spindle speed and turn it on 
         if len(self.SpindleRPMVar.get())>0:
             self.g_code.insert(END, 'S%i ' %(self.FToD(self.SpindleRPMVar.get())))
             self.g_code.insert(END, 'M3 ')
+
+        # Set Feed rate
         if len(self.FeedrateVar.get())>0:
             self.g_code.insert(END, 'F%s\n' % (self.FeedrateVar.get()))
 
-        self.X_Position = self.X_Start
-
         # Go to safe Z position
         self.g_code.insert(END, 'G0 Z%s\n' % (self.SafeZVar.get()))
+
+        # Go to start position
+        self.g_code.insert(END, 'G0 X%.4f Y%.4f\n' \
+                %(self.X_Start, self.Y_Start))
+
+        self.X_Position = self.X_Start
 
         for i in range(self.NumOfZSteps):
 
@@ -262,9 +283,7 @@ class Application(Frame):
             else:
                 self.Z_Position = -self.Z_Total
 
-            self.g_code.insert(END, 'G90\n')                  # Absolute movement mode
             self.g_code.insert(END, 'G1 Z%.4f\n' % (self.Z_Position))
-            self.g_code.insert(END, 'G91\n')                  # Relative movement mode
 
             if self.X_Position == self.X_Start: 
                 self.g_code.insert(END, 'G1 X%.4f\n' % (self.X_End))
@@ -275,7 +294,12 @@ class Application(Frame):
 
         # Go to safe Z position
         self.g_code.insert(END, 'G0 Z%s\n' % (self.SafeZVar.get()))
+        
+        # Go to start position
+        self.g_code.insert(END, 'G0 X%.4f Y%.4f\n' \
+                %(self.X_Start, self.Y_Start))
 
+        # Turn off spindle
         if len(self.SpindleRPMVar.get())>0:
             self.g_code.insert(END, 'M5\n')
 
@@ -361,8 +385,10 @@ class Application(Frame):
         self.DepthOfCutVar.set(self.GetIniData('cut.ini','MillingPara','DepthOfCut','3'))
         self.ToolDiameterVar.set(self.GetIniData('cut.ini','MillingPara','ToolDiameter','10'))
         self.SpindleRPMVar.set(self.GetIniData('cut.ini','MillingPara','SpindleRPM','9000'))
+        self.LeadinVar.set(self.GetIniData('cut.ini','MillingPara','Leadin'))
         self.UnitVar.set(int(self.GetIniData('cut.ini','MillingPara','UnitVar','2')))
         self.HomeVar.set(int(self.GetIniData('cut.ini','MillingPara','HomeVar','4')))
+        self.CutAlongVar.set(int(self.GetIniData('cut.ini','MillingPara','CutAlongVar','1')))
         self.SafeZVar.set(self.GetIniData('cut.ini','MillingPara','SafeZ','10.0'))
         self.CutLengthVar.set(self.GetIniData('cut.ini','Part','X'))
         self.TotalToRemoveVar.set(self.GetIniData('cut.ini','Part','TotalToRemove'))
@@ -380,8 +406,10 @@ class Application(Frame):
         set_pref('MillingPara','DepthOfCut',self.DepthOfCutVar.get())
         set_pref('MillingPara','ToolDiameter',self.ToolDiameterVar.get())
         set_pref('MillingPara','SpindleRPM',self.SpindleRPMVar.get())
+        set_pref('MillingPara','Leadin',self.LeadinVar.get())
         set_pref('MillingPara','UnitVar',self.UnitVar.get())
         set_pref('MillingPara','HomeVar',self.HomeVar.get())
+        set_pref('MillingPara','CutAlongVar',self.CutAlongVar.get())
         set_pref('MillingPara','SafeZ',self.SafeZVar.get())
         set_pref('Part','X',self.CutLengthVar.get())
         set_pref('Part','TotalToRemove',self.TotalToRemoveVar.get())
