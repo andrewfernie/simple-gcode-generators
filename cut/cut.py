@@ -231,13 +231,22 @@ class Application(Frame):
             self.LeadIn = self.FToD(self.LeadinVar.get())
         else:
             self.LeadIn = self.ToolRadius + D('0.1')
+
+        self.g_code.insert(END, 'G20 ')
+
+        if self.CutAlongVar.get()==0:
+            self.X_Start = -(self.LeadIn)
+            self.X_End = self.FToD(self.CutLengthVar.get()) + self.LeadIn
         
-        self.X_Start = -(self.LeadIn)
-        self.X_End = self.FToD(self.CutLengthVar.get()) + self.LeadIn
+            self.Y_Start = 0.0
+            self.Y_End = 0.0
+        else:
+            self.Y_Start = -(self.LeadIn)
+            self.Y_End = self.FToD(self.CutLengthVar.get()) + self.LeadIn
         
-        self.Y_Start = 0.0
-        self.Y_End = 0.0
-        
+            self.X_Start = 0.0
+            self.X_End = 0.0
+
         self.Z_Total = self.FToD(self.TotalToRemoveVar.get())
         if len(self.DepthOfCutVar.get())>0:
             self.Z_Step = self.FToD(self.DepthOfCutVar.get())
@@ -273,7 +282,10 @@ class Application(Frame):
         self.g_code.insert(END, 'G0 X%.4f Y%.4f\n' \
                 %(self.X_Start, self.Y_Start))
 
-        self.X_Position = self.X_Start
+        if self.CutAlongVar.get()==0:
+            self.X_Position = self.X_Start
+        else:
+            self.Y_Position = self.Y_Start
 
         for i in range(self.NumOfZSteps):
 
@@ -285,12 +297,20 @@ class Application(Frame):
 
             self.g_code.insert(END, 'G1 Z%.4f\n' % (self.Z_Position))
 
-            if self.X_Position == self.X_Start: 
-                self.g_code.insert(END, 'G1 X%.4f\n' % (self.X_End))
-                self.X_Position = self.X_End
+            if self.CutAlongVar.get()==0:
+                if self.X_Position == self.X_Start: 
+                    self.g_code.insert(END, 'G1 X%.4f\n' % (self.X_End))
+                    self.X_Position = self.X_End
+                else:
+                    self.g_code.insert(END, 'G1 X%.4f\n' % (self.X_Start))
+                    self.X_Position = self.X_Start
             else:
-                self.g_code.insert(END, 'G1 X%.4f\n' % (self.X_Start))
-                self.X_Position = self.X_Start
+                if self.Y_Position == self.Y_Start: 
+                    self.g_code.insert(END, 'G1 Y%.4f\n' % (self.Y_End))
+                    self.Y_Position = self.Y_End
+                else:
+                    self.g_code.insert(END, 'G1 Y%.4f\n' % (self.Y_Start))
+                    self.Y_Position = self.Y_Start
 
         # Go to safe Z position
         self.g_code.insert(END, 'G0 Z%s\n' % (self.SafeZVar.get()))
