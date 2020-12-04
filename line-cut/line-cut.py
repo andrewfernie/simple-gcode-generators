@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 version = '1.0.0'
-# python cut.py
+# python line-cut.py
 # December 1, 2020
-# Cut G-Code Generator for LinuxCNC
+# Line-cut G-Code Generator for LinuxCNC
 """
 
     Adapted from face.py by Andrew Fernie. Same rights as provided with face.py described below.
@@ -27,7 +27,7 @@ version = '1.0.0'
     you must donate $20 USD to a local food bank
     or the food police will get you! Think of others from time to time...
     To make it a menu item in Ubuntu use the Alacarte Menu Editor and add 
-    the command python YourPathToThisFile/cut.py
+    the command python YourPathToThisFile/line-cut.py
     make sure you have made the file execuatble by right
     clicking and selecting properties then Permissions and Execute
 
@@ -209,7 +209,7 @@ class Application(Frame):
             self.quitButton.grid(row=8, column=5, sticky=E)    
 
     def QuitFromAxis(self):
-        sys.stdout.write("M2 (Cut.py Aborted)")
+        sys.stdout.write("M2 (line-cut.py Aborted)")
         self.quit()
 
     def WriteToAxis(self):
@@ -400,17 +400,17 @@ class Application(Frame):
         self.NewFileName.close()
 
     def LoadPrefs(self):
-        self.NcDir=self.GetIniData('cut.ini','Directories','NcFiles',os.path.expanduser("~"))
-        self.FeedrateVar.set(self.GetIniData('cut.ini','MillingPara','Feedrate','1000'))
-        self.DepthOfCutVar.set(self.GetIniData('cut.ini','MillingPara','DepthOfCut','3'))
-        self.ToolDiameterVar.set(self.GetIniData('cut.ini','MillingPara','ToolDiameter','10'))
-        self.SpindleRPMVar.set(self.GetIniData('cut.ini','MillingPara','SpindleRPM','9000'))
-        self.LeadinVar.set(self.GetIniData('cut.ini','MillingPara','Leadin'))
-        self.UnitVar.set(int(self.GetIniData('cut.ini','MillingPara','UnitVar','2')))
-        self.HomeVar.set(int(self.GetIniData('cut.ini','MillingPara','HomeVar','4')))
-        self.CutAlongVar.set(int(self.GetIniData('cut.ini','MillingPara','CutAlongVar','1')))
-        self.SafeZVar.set(self.GetIniData('cut.ini','MillingPara','SafeZ','10.0'))
-        self.CutLengthVar.set(self.GetIniData('cut.ini','Part','X'))
+        self.NcDir=self.GetIniData('line-cut.ini','Directories','NcFiles',os.path.expanduser("~"))
+        self.FeedrateVar.set(self.GetIniData('line-cut.ini','MillingPara','Feedrate','1000'))
+        self.DepthOfCutVar.set(self.GetIniData('line-cut.ini','MillingPara','DepthOfCut','3'))
+        self.ToolDiameterVar.set(self.GetIniData('line-cut.ini','MillingPara','ToolDiameter','10'))
+        self.SpindleRPMVar.set(self.GetIniData('line-cut.ini','MillingPara','SpindleRPM','9000'))
+        self.LeadinVar.set(self.GetIniData('line-cut.ini','MillingPara','Leadin'))
+        self.UnitVar.set(int(self.GetIniData('line-cut.ini','MillingPara','UnitVar','2')))
+        self.HomeVar.set(int(self.GetIniData('line-cut.ini','MillingPara','HomeVar','4')))
+        self.CutAlongVar.set(int(self.GetIniData('line-cut.ini','MillingPara','CutAlongVar','1')))
+        self.SafeZVar.set(self.GetIniData('line-cut.ini','MillingPara','SafeZ','10.0'))
+        self.CutLengthVar.set(self.GetIniData('line-cut.ini','Part','X'))
         self.TotalToRemoveVar.set(self.GetIniData('cut.ini','Part','TotalToRemove'))
 
 
@@ -420,7 +420,7 @@ class Application(Frame):
                 self.cp.add_section(SectionName)
             self.cp.set(SectionName,OptionName,OptionData)
         self.cp=ConfigParser()
-        self.fn=open('cut.ini','w')
+        self.fn=open('line-cut.ini','w')
         set_pref('Directories','NcFiles',self.NcDir)
         set_pref('MillingPara','Feedrate',self.FeedrateVar.get())
         set_pref('MillingPara','DepthOfCut',self.DepthOfCutVar.get())
@@ -471,6 +471,6 @@ class Application(Frame):
 
 
 app = Application()
-app.master.title('Cutting G-Code Generator Version ' + version)
+app.master.title('Line Cutting G-Code Generator Version ' + version)
 app.mainloop()
 

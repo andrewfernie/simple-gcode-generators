@@ -126,7 +126,12 @@ class Application(Frame):
         self.TotalToRemoveVar = StringVar()
         self.TotalToRemove = Entry(self, width=10, textvariable=self.TotalToRemoveVar)
         self.TotalToRemove.grid(row=4, column=1, sticky=W)
-
+        
+        self.st10 = Label(self, text='Safe Z height')
+        self.st10.grid(row=5, column=0, sticky=E)
+        self.SafeZVar = StringVar()
+        self.Leadin = Entry(self, width=10, textvariable=self.SafeZVar)
+        self.Leadin.grid(row=5, column=1, sticky=W)
         
         self.st3 = Label(self, text='Tool Diameter ')
         self.st3.grid(row=1, column=2, sticky=E)
@@ -151,12 +156,6 @@ class Application(Frame):
         self.StepOverVar = StringVar()
         self.StepOver = Entry(self, width=10, textvariable=self.StepOverVar)
         self.StepOver.grid(row=4, column=3, sticky=W)
-        
-        self.st10 = Label(self, text='Safe Z hight')
-        self.st10.grid(row=5, column=0, sticky=E)
-        self.SafeZVar = StringVar()
-        self.Leadin = Entry(self, width=10, textvariable=self.SafeZVar)
-        self.Leadin.grid(row=5, column=1, sticky=W)
         
         self.st8 = Label(self, text='Lead In / Lead Out')
         self.st8.grid(row=5, column=2, sticky=E)
@@ -235,13 +234,16 @@ class Application(Frame):
             self.LeadIn = self.FToD(self.LeadinVar.get())
         else:
             self.LeadIn = self.ToolRadius + D('0.1')
+
         self.X_Start = -(self.LeadIn)
         self.X_End = self.FToD(self.PartLengthVar.get()) + self.LeadIn
+
         if len(self.StepOverVar.get())>0:
             self.Y_StepOver = (self.FToD(self.ToolDiameterVar.get())\
                 * self.FToD(self.StepOverVar.get())/100)
         else:
             self.Y_StepOver = self.FToD(self.ToolDiameterVar.get())*D('.75')
+
         if self.HomeVar.get()==4:
         	self.Y_Start = (self.ToolRadius - self.Y_StepOver)
         	self.Y_End = -(self.FToD(self.PartWidthVar.get())-\
@@ -250,7 +252,9 @@ class Application(Frame):
         	self.Y_Start = -(self.ToolRadius - self.Y_StepOver)
         	self.Y_End = (self.FToD(self.PartWidthVar.get())+\
             		(self.ToolRadius + self.Y_StepOver))+D('.1')
+
         self.Z_Total = self.FToD(self.TotalToRemoveVar.get())
+
         if len(self.DepthOfCutVar.get())>0:
             self.Z_Step = self.FToD(self.DepthOfCutVar.get())
             self.NumOfZSteps = int(self.FToD(self.TotalToRemoveVar.get()) / self.Z_Step)
@@ -259,13 +263,16 @@ class Application(Frame):
         else:
             self.Z_Step = 0
             self.NumOfZSteps = 1
+
         self.NumOfYSteps = int(ceil(self.FToD(self.PartWidthVar.get())/self.Y_StepOver))
         self.Z_Position = 0
+
         # Generate the G-Codes
         if self.UnitVar.get()==1:
             self.g_code.insert(END, 'G20 ')
         else:
             self.g_code.insert(END, 'G21 ')
+            
         if len(self.SpindleRPMVar.get())>0:
             self.g_code.insert(END, 'S%i ' %(self.FToD(self.SpindleRPMVar.get())))
             self.g_code.insert(END, 'M3 ')
