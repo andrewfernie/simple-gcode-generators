@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-version = '1.5.0'
+version = '1.6.0'
 # python face.py
 # Dec 4 2007
 # Face G-Code Generator for LinuxCNC
@@ -47,19 +47,26 @@ version = '1.5.0'
 	is the home directory. After saving a gcode file, this directory is the new
 	NC File directory and can be saved with save preferences.
 	Added safe z hight.
+
+2025-01-12 Andrew Fernie
+    1.6.0
+    Adapt for Python 3.X
+
 """
-from Tkinter import *
-from tkFileDialog import *
+import tkinter as tk
+from tkinter import *
+from tkinter import messagebox, ttk, simpledialog
+from tkinter.filedialog import asksaveasfile 
+
 from math import *
-from SimpleDialog import *
-from ConfigParser import *
+import configparser 
 from decimal import *
-import tkMessageBox
+
 import os
 
-IN_AXIS = os.environ.has_key("AXIS_PROGRESS_BAR")
+IN_AXIS = 'AXIS_PROGRESS_BAR' in os.environ
+class APP (Frame):
 
-class Application(Frame):
     def __init__(self, master=None):
         Frame.__init__(self, master, width=700, height=400, bd=1)
         self.grid()
@@ -126,12 +133,7 @@ class Application(Frame):
         self.TotalToRemoveVar = StringVar()
         self.TotalToRemove = Entry(self, width=10, textvariable=self.TotalToRemoveVar)
         self.TotalToRemove.grid(row=4, column=1, sticky=W)
-        
-        self.st10 = Label(self, text='Safe Z height')
-        self.st10.grid(row=5, column=0, sticky=E)
-        self.SafeZVar = StringVar()
-        self.Leadin = Entry(self, width=10, textvariable=self.SafeZVar)
-        self.Leadin.grid(row=5, column=1, sticky=W)
+
         
         self.st3 = Label(self, text='Tool Diameter ')
         self.st3.grid(row=1, column=2, sticky=E)
@@ -156,6 +158,12 @@ class Application(Frame):
         self.StepOverVar = StringVar()
         self.StepOver = Entry(self, width=10, textvariable=self.StepOverVar)
         self.StepOver.grid(row=4, column=3, sticky=W)
+        
+        self.st10 = Label(self, text='Safe Z hight')
+        self.st10.grid(row=5, column=0, sticky=E)
+        self.SafeZVar = StringVar()
+        self.Leadin = Entry(self, width=10, textvariable=self.SafeZVar)
+        self.Leadin.grid(row=5, column=1, sticky=W)
         
         self.st8 = Label(self, text='Lead In / Lead Out')
         self.st8.grid(row=5, column=2, sticky=E)
@@ -234,16 +242,13 @@ class Application(Frame):
             self.LeadIn = self.FToD(self.LeadinVar.get())
         else:
             self.LeadIn = self.ToolRadius + D('0.1')
-
         self.X_Start = -(self.LeadIn)
         self.X_End = self.FToD(self.PartLengthVar.get()) + self.LeadIn
-
         if len(self.StepOverVar.get())>0:
             self.Y_StepOver = (self.FToD(self.ToolDiameterVar.get())\
                 * self.FToD(self.StepOverVar.get())/100)
         else:
             self.Y_StepOver = self.FToD(self.ToolDiameterVar.get())*D('.75')
-
         if self.HomeVar.get()==4:
         	self.Y_Start = (self.ToolRadius - self.Y_StepOver)
         	self.Y_End = -(self.FToD(self.PartWidthVar.get())-\
@@ -252,9 +257,7 @@ class Application(Frame):
         	self.Y_Start = -(self.ToolRadius - self.Y_StepOver)
         	self.Y_End = (self.FToD(self.PartWidthVar.get())+\
             		(self.ToolRadius + self.Y_StepOver))+D('.1')
-
         self.Z_Total = self.FToD(self.TotalToRemoveVar.get())
-
         if len(self.DepthOfCutVar.get())>0:
             self.Z_Step = self.FToD(self.DepthOfCutVar.get())
             self.NumOfZSteps = int(self.FToD(self.TotalToRemoveVar.get()) / self.Z_Step)
@@ -263,16 +266,13 @@ class Application(Frame):
         else:
             self.Z_Step = 0
             self.NumOfZSteps = 1
-
         self.NumOfYSteps = int(ceil(self.FToD(self.PartWidthVar.get())/self.Y_StepOver))
         self.Z_Position = 0
-
         # Generate the G-Codes
         if self.UnitVar.get()==1:
             self.g_code.insert(END, 'G20 ')
         else:
             self.g_code.insert(END, 'G21 ')
-            
         if len(self.SpindleRPMVar.get())>0:
             self.g_code.insert(END, 'S%i ' %(self.FToD(self.SpindleRPMVar.get())))
             self.g_code.insert(END, 'M3 ')
@@ -280,12 +280,12 @@ class Application(Frame):
             self.g_code.insert(END, 'F%s\n' % (self.FeedrateVar.get()))
 
         # Go to safe Z position
-        self.g_code.insert(END, 'G0 Z%s\n' % (self.SafeZVar.get()))
+        self.g_code.insert(END, 'G1 Z%s\n' % (self.SafeZVar.get()))
 
         for i in range(self.NumOfZSteps):
 
-            self.g_code.insert(END, 'G0 X%.4f Y%.4f\n' \
-                %(self.X_Start, self.Y_Start))
+            self.g_code.insert(END, 'G0 X%.4f Y%.4f\nZ%.4f\n' \
+                %(self.X_Start, self.Y_Start,z))
 
             # Make sure the Z position does not exceed the total depth
             if self.Z_Step>0 and (self.Z_Total+self.Z_Position) >= self.Z_Step:
@@ -316,7 +316,7 @@ class Application(Frame):
                         self.g_code.insert(END, 'G0 Y%.4f\n' % (self.Y_Position))
 
             # Go to safe Z position
-            self.g_code.insert(END, 'G0 Z%s\n' % (self.SafeZVar.get()))
+            self.g_code.insert(END, 'G1 Z%s\n' % (self.SafeZVar.get()))
 
         if len(self.SpindleRPMVar.get())>0:
             self.g_code.insert(END, 'M5\n')
@@ -349,7 +349,7 @@ class Application(Frame):
         If the file is not found or a section or an option is not found
         returns an exception
         """
-        self.cp=ConfigParser()
+        self.cp=configparser.ConfigParser()
         try:
             self.cp.readfp(open(FileName,'r'))
             try:
@@ -369,7 +369,7 @@ class Application(Frame):
         Pass the file name, section name, option name and option data
         When complete returns 'sucess'
         """
-        self.cp=ConfigParser()
+        self.cp=configparser.ConfigParser()
         try:
             self.fn=open(FileName,'a')
         except IOError:
@@ -417,7 +417,7 @@ class Application(Frame):
             if not self.cp.has_section(SectionName):
                 self.cp.add_section(SectionName)
             self.cp.set(SectionName,OptionName,OptionData)
-        self.cp=ConfigParser()
+        self.cp=configparser.ConfigParser()
         self.fn=open('face.ini','w')
         set_pref('Directories','NcFiles',self.NcDir)
         set_pref('MillingPara','Feedrate',self.FeedrateVar.get())
@@ -436,7 +436,7 @@ class Application(Frame):
         self.fn.close()
 	
     def Simple(self):
-        tkMessageBox.showinfo('Feature', 'Sorry this Feature has\nnot been programmed yet.')
+        messagebox.showinfo('Feature', 'Sorry this Feature has\nnot been programmed yet.')
 
     def ClearTextBox(self):
         self.g_code.delete(1.0,END)
@@ -449,7 +449,7 @@ class Application(Frame):
         self.CopyClpBd()
 
     def HelpInfo(self):
-        SimpleDialog(self,
+        simpledialog(self,
             text='Required fields are:\n'
             'Part Width & Length,\n'
             'Amount to Remove,\n'
@@ -459,17 +459,16 @@ class Application(Frame):
             default=0,
             title='User Info').go()
     def HelpAbout(self):
-        tkMessageBox.showinfo('Help About', 'Programmed by\n'
+        messagebox.showinfo('Help About', 'Programmed by\n'
             'Big John T (AKA John Thornton)\n'
             'Rick Calder\n'
             'Brad Hanken\n'
             'Aglef Kaiser\n'
             'Version ' + version)
 
-
-
-
-app = Application()
+root = tk.Tk()
+#root.geometry("600x800+100+100")
+app = APP(master=root)
 app.master.title('Facing G-Code Generator Version ' + version)
 app.mainloop()
 
