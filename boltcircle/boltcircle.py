@@ -1,32 +1,37 @@
 #!/usr/local/bin/python
+"""
+    Bolt Circle Array G-code Generator
+    Author: Dan Falck  <dfalck  at a domain called verizon dot net>
+    Big John T inspired me to put this together today
+    Big John T's face.py was used as a template to stay consistant with his programs
+    boltcircle.py is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
 
-# Bolt Circle Array G-code Generator
-# Author: Dan Falck  <dfalck  at a domain called verizon dot net>
-# Big John T inspired me to put this together today
-# Big John T's face.py was used as a template to stay consistant with his programs
-# boltcircle.py is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-# 
-# boltcircle.py is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-# 
-# You should have received a copy of the GNU General Public License
-# along with CADvas; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+    boltcircle.py is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
+    You should have received a copy of the GNU General Public License
+    along with CADvas; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+    Version 1.1.0 - 2025-01-13 - Andrew Fernie
+        Adapt for Python 3.X
+"""
+version = "1.1.0"
+
+import tkinter as tk
+from tkinter import *
 import math
-from Tkinter import *
-import tkMessageBox
+from tkinter import messagebox
 import os
 
+IN_AXIS = 'AXIS_PROGRESS_BAR' in os.environ
+class APP (Frame):
 
-IN_AXIS = os.environ.has_key("AXIS_PROGRESS_BAR")
-
-class Application(Frame):
     def __init__(self, master=None):
         Frame.__init__(self, master)
         self.grid()
@@ -159,8 +164,8 @@ class Application(Frame):
         calc_angle=start_angle
         self.g_code.insert(END,(self.Gcode_value.get()))
         while (count < no_of_holes):
-	    x1=math.cos(math.radians(calc_angle))*(bolt_circle_diameter/2)
-	    y1=math.sin(math.radians(calc_angle))*(bolt_circle_diameter/2)
+            x1=math.cos(math.radians(calc_angle))*(bolt_circle_diameter/2)
+            y1=math.sin(math.radians(calc_angle))*(bolt_circle_diameter/2)
             x=(x1+x_center)*scale
             y=(y1+y_center)*scale        
             z=(z_center)*scale
@@ -174,9 +179,9 @@ class Application(Frame):
             self.g_code.insert(END,' F') 
             self.g_code.insert(END,(self.feed_value.get()))
             self.g_code.insert(END,'\n') 
-	    anglecount=anglecount+1
-	
-	    calc_angle=calc_angle + circle_division_angle	
+            anglecount=anglecount+1
+            
+            calc_angle=calc_angle + circle_division_angle	
 
             count=count+1
 	   
@@ -196,6 +201,7 @@ class Application(Frame):
         sys.stdout.write(self.g_code.get(0.0, END)+'\n')
         self.quit()
 
-app = Application()
-app.master.title("Bolt Circle Array G-Code Generator")
+root = tk.Tk()
+app = APP(master=root)
+app.master.title('Bolt Circle Array G-Code Generator' + version)
 app.mainloop()

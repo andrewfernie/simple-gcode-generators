@@ -2,7 +2,6 @@
 
 """
 Arc Generator G-Code Generator
-Version 1.7
 Copyright (C) <2008>  <John Thornton>
 
 This program is free software: you can redistribute it and/or modify
@@ -52,15 +51,22 @@ When your creating G code in Gedit go to Tools > External Tools > Arc Buddy
 Add the required data and click Show Me to see or click Send to send the
 output to Gedit.
 
+
+2025-01-13 Andrew Fernie
+    1.8.0
+    Adapt for Python 3.X
 """
 
-from Tkinter import *
+import tkinter as tk
+from tkinter import *
 from math import *
 import os
 
-IN_AXIS = os.environ.has_key("AXIS_PROGRESS_BAR")
+version = '1.8.0'
 
-class Application(Frame):
+IN_AXIS = 'AXIS_PROGRESS_BAR' in os.environ
+class APP (Frame):
+
   def __init__(self, master=None):
     Frame.__init__(self, master)
     self.grid()
@@ -276,15 +282,14 @@ class Application(Frame):
 
   def SendAll(self):
     self.DoIt()
-    if self.FeedRateVar.get() <> '':
+    if self.FeedRateVar.get() != '':
       sys.stdout.write('F' + self.FeedRateVar.get() + "\r\n")
     sys.stdout.write('G1 ' + self.StartPoint.get() + "\r\n")
     sys.stdout.write(self.ArcCode.get() + "\r\n")
     self.quit()
 
 
-app = Application()
-app.master.title("Lathe Arc Generator 1.8")
+root = tk.Tk()
+app = APP(master=root)
+app.master.title('Lathe Arc Generator ' + version)
 app.mainloop()
-
-

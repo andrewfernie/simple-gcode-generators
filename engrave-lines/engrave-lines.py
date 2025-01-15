@@ -28,16 +28,20 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
     Rev v2 21.06.2012 ArcEye
 """
-# change this if you want to use another font
-fontfile = "/usr/share/qcad/fonts/romanc.cxf"
 
-from Tkinter import *
+import tkinter as tk
+from tkinter import *
 from math import *
 import os
 import re
+import glob
 import sys
 import string
 import getopt
+
+# change this if you want to use another font
+fontfile = "/usr/share/qcad/fonts/romanc.cxf"
+
 
 String =   ""
 SafeZ =    2
@@ -121,7 +125,7 @@ def parse(file):
             font[key].stroke_list = stroke_list
             font[key].xmax = xmax
             if (num_cmds != cmds_read):
-                print "(warning: discrepancy in number of commands %s, line %s, %s != %s )" % (fontfile, line_num, num_cmds, cmds_read)
+                print ("(warning: discrepancy in number of commands %s, line %s, %s != %s )" % (fontfile, line_num, num_cmds, cmds_read))
 
         new_cmd = re.match('^\[(.*)\]\s(\d+)', text)
         if new_cmd: #new character
@@ -386,12 +390,12 @@ def code(arg, visit, last):
 ################################################################################################################
 
 def help_message():
-    print '''engrave-lines.py G-Code Engraving Generator for command-line usage
+    print ('''engrave-lines.py G-Code Engraving Generator for command-line usage
             (C) ArcEye <2012> 
             based upon code from engrave-11.py
-            Copyright (C) <2008>  <Lawrence Glaister> <ve7it at shaw dot ca>'''
+            Copyright (C) <2008>  <Lawrence Glaister> <ve7it at shaw dot ca>''')
             
-    print '''engrave-lines.py -X -x -i -Y -y -S -s -Z -D -C -W -M -F -P -p -0 -1 -2 -3 ..............
+    print ('''engrave-lines.py -X -x -i -Y -y -S -s -Z -D -C -W -M -F -P -p -0 -1 -2 -3 ..............
        Options: 
        -h   Display this help message
        -X   Start X value                       Defaults to 0
@@ -421,7 +425,7 @@ def help_message():
        -9   Line9 string follow this
       Example
       engrave-lines.py -X7.5 -x5 -i'123' -Y12.75 -y5.25 -S0.4 -s0.5 -Z2 -D0.1 -0'Line0' -1'Line1' -2'Line2' -3'Line3' > test.ngc
-    '''
+    ''')
     sys.exit(0)
 
 #===============================================================================================================
@@ -453,7 +457,7 @@ def main():
     try:
         options, xarguments = getopt.getopt(sys.argv[1:], 'hd:X:x:i:Y:y:S:s:Z:D:C:W:M:F:P:p:L:0:1:2:3:4:5:6:7:8:9:')
     except getopt.error:
-        print 'Error: You tried to use an unknown option. Try `engrave-lines.py -h\' for more information.'
+        print ('Error: You tried to use an unknown option. Try `engrave-lines.py -h\' for more information.')
         sys.exit(0)
         
     if len(sys.argv[1:]) == 0:
@@ -468,7 +472,7 @@ def main():
     for a in options[:]:
         if a[0] == '-d' and a[1] != '':
             debug = int(a[1])
-            print'debug set to %d' %(debug)
+            print ('debug set to %d' %(debug))
             options.remove(a)
             break
 
@@ -476,7 +480,7 @@ def main():
         if a[0] == '-X' and a[1] != '':
             XStart = float(a[1])
             if debug:            
-                print'X = %.4f' %(XStart)
+                print ('X = %.4f' %(XStart))
             options.remove(a)
             break
 
@@ -484,7 +488,7 @@ def main():
         if a[0] == '-x' and a[1] != '':
             XLineOffset = float(a[1])
             if debug:
-                print'x = %.4f' %(XLineOffset)
+                print ('x = %.4f' %(XLineOffset))
             options.remove(a)
             break
 
@@ -492,7 +496,7 @@ def main():
         if a[0] == '-i' and a[1] != '':
             XIndentList = a[1]
             if debug:
-                print'i = %s' %(a[1])
+                print ('i = %s' %(a[1]))
             options.remove(a)
             break
             
@@ -500,7 +504,7 @@ def main():
         if a[0] == '-Y' and a[1] != '':
             YStart = float(a[1])
             if debug:
-                print'Y = %.4f' %(YStart)
+                print ('Y = %.4f' %(YStart))
             options.remove(a)
             break
 
@@ -508,7 +512,7 @@ def main():
         if a[0] == '-y' and a[1] != '':
             YLineOffset = float(a[1])
             if debug:
-                print'y = %.4f' %(YLineOffset)
+                print ('y = %.4f' %(YLineOffset))
             options.remove(a)
             break
             
@@ -516,7 +520,7 @@ def main():
         if a[0] == '-S' and a[1] != '':
             XScale = float(a[1])
             if debug:
-                print'S = %.4f' %(XScale)
+                print ('S = %.4f' %(XScale))
             options.remove(a)
             break            
   
@@ -524,7 +528,7 @@ def main():
         if a[0] == '-s' and a[1] != '':
             YScale = float(a[1])
             if debug:
-                print's = %.4f' %(YScale)
+                print ('s = %.4f' %(YScale))
             options.remove(a)
             break              
   
@@ -532,7 +536,7 @@ def main():
         if a[0] == '-Z' and a[1] != '':
             SafeZ = float(a[1])
             if debug:
-                print'Z = %.4f' %(SafeZ)
+                print ('Z = %.4f' %(SafeZ))
             options.remove(a)
             break  
   
@@ -540,7 +544,7 @@ def main():
         if a[0] == '-D' and a[1] != '':
             Depth = float(a[1])
             if debug:
-                print'D = %.4f' %(Depth)
+                print ('D = %.4f' %(Depth))
             options.remove(a)
             break    
   
@@ -548,7 +552,7 @@ def main():
         if a[0] == '-C' and a[1] != '':
             CSpaceP = float(a[1])
             if debug:
-                print'C = %.4f' %(CSpaceP)
+                print ('C = %.4f' %(CSpaceP))
             options.remove(a)
             break      
 
@@ -556,7 +560,7 @@ def main():
         if a[0] == '-W' and a[1] != '':
             WSpaceP = float(a[1])    
             if debug:
-                print'W = %.4f' %(WSpaceP)
+                print ('W = %.4f' %(WSpaceP))
             options.remove(a)
             break      
 
@@ -564,7 +568,7 @@ def main():
         if a[0] == '-A' and a[1] != '':
             Angle = float(a[1])
             if debug:
-                print'A = %.4f' %(Angle)
+                print ('A = %.4f' %(Angle))
             options.remove(a)
             break  
             
@@ -573,7 +577,7 @@ def main():
         if a[0] == '-M' and a[1] != '':
             Mirror = float(a[1])
             if debug:
-                print'M = %.4f' %(Mirror)
+                print ('M = %.4f' %(Mirror))
             options.remove(a)
             break  
               
@@ -581,7 +585,7 @@ def main():
         if a[0] == '-F' and a[1] != '':
             Flip = float(a[1])
             if debug:
-                print'F = %.4f' %(Flip)
+                print ('F = %.4f' %(Flip))
             options.remove(a)
             break  
 
@@ -589,7 +593,7 @@ def main():
         if a[0] == '-P' and a[1] != '':
             Preamble = a[1]
             if debug:
-                print'P = %s' %(a[1])
+                print ('P = %s' %(a[1]))
             options.remove(a)
             break  
 
@@ -597,7 +601,7 @@ def main():
         if a[0] == '-p' and a[1] != '':            
             Postamble = a[1]
             if debug:
-                print'p = %s' %(a[1])
+                print ('p = %s' %(a[1]))
             options.remove(a)
             break  
 
@@ -605,7 +609,7 @@ def main():
         if a[0] == '-0' and a[1] != '':
             stringlist.append(a[1])
             if debug:
-                print'0 = %s' %(a[1])
+                print ('0 = %s' %(a[1]))
             options.remove(a)
             break  
             
@@ -613,7 +617,7 @@ def main():
         if a[0] == '-1' and a[1] != '':
             stringlist.append(a[1])
             if debug:
-                print'1 = %s' %(a[1])
+                print ('1 = %s' %(a[1]))
             options.remove(a)
             break  
             
@@ -621,7 +625,7 @@ def main():
         if a[0] == '-2' and a[1] != '':
             stringlist.append(a[1])
             if debug:
-                print'2 = %s' %(a[1])
+                print ('2 = %s' %(a[1]))
             options.remove(a)
             break  
 
@@ -629,7 +633,7 @@ def main():
         if a[0] == '-3' and a[1] != '':
             stringlist.append(a[1])
             if debug:
-                print'3 = %s' %(a[1])
+                print ('3 = %s' %(a[1]))
             options.remove(a)
             break  
             
@@ -637,7 +641,7 @@ def main():
         if a[0] == '-4' and a[1] != '':
             stringlist.append(a[1])
             if debug:
-                print'4 = %s' %(a[1])
+                print ('4 = %s' %(a[1]))
             options.remove(a)
             break  
 
@@ -645,7 +649,7 @@ def main():
         if a[0] == '-5' and a[1] != '':
             stringlist.append(a[1])
             if debug:
-                print'5 = %s' %(a[1])
+                print ('5 = %s' %(a[1]))
             options.remove(a)
             break  
             
@@ -653,7 +657,7 @@ def main():
         if a[0] == '-6' and a[1] != '':
             stringlist.append(a[1])
             if debug:
-                print'6 = %s' %(a[1])
+                print ('6 = %s' %(a[1]))
             options.remove(a)
             break  
             
@@ -661,7 +665,7 @@ def main():
         if a[0] == '-7' and a[1] != '':
             stringlist.append(a[1])
             if debug:
-                print'7 = %s' %(a[1])
+                print ('7 = %s' %(a[1]))
             options.remove(a)
             break  
             
@@ -669,7 +673,7 @@ def main():
         if a[0] == '-8' and a[1] != '':
             stringlist.append(a[1])
             if debug:
-                print'8 = %s' %(a[1])
+                print ('8 = %s' %(a[1]))
             options.remove(a)
             break  
             
@@ -677,7 +681,7 @@ def main():
         if a[0] == '-9' and a[1] != '':
             stringlist.append(a[1])
             if debug:
-                print'9 = %s' %(a[1])
+                print ('9 = %s' %(a[1]))
             options.remove(a)
             break  
             

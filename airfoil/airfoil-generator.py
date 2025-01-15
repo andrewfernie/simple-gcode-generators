@@ -18,12 +18,21 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+import tkinter as tk
+from tkinter import *
+from tkinter import messagebox, ttk, simpledialog
+from tkinter.filedialog import asksaveasfile 
+
+from math import *
+import configparser 
+from decimal import *
+
 import os
-from Tkinter import *
-import tkFileDialog
+
 from time import sleep
 from PIL import Image, ImageTk
 import urllib
+
 
 path = os.path.dirname(os.path.realpath(__file__))
 g_code = []
@@ -99,7 +108,7 @@ def sort_data(data_to_sort):
             reverse_point = a
             break
     if reverse_point > 0:
-        print "hier"
+        print ("hier")
         for a in range(length-1,reverse_point,-1):
             sorted_data.append(local_data[a])
     

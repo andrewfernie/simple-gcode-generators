@@ -1,7 +1,6 @@
 #!/usr/bin/python
 """
     bezel-11.py G-Code Generator
-    Version 1.1
     Copyright (C) <2008>  <Lawrence Glaister> <ve7it at shaw dot ca>
     based on work by <John Thornton>  -- thanks John!
 
@@ -30,15 +29,20 @@
     Version 1.1 used vars to hold center offsets and Z depths for 
         easy reuse of bezel code. Moved feedspeed to preamble
 
-"""
+    Version 1.2.0 - 2025-01-12 - Andrew Fernie
+        Adapt for Python 3.X
 
-from Tkinter import *
+"""
+version = '1.2.0'
+
+import tkinter as tk
+from tkinter import *
 from math import *
 import os
 
-IN_AXIS = os.environ.has_key("AXIS_PROGRESS_BAR")
+IN_AXIS = 'AXIS_PROGRESS_BAR' in os.environ
+class APP (Frame):
 
-class Application(Frame):
     def __init__(self, master=None):
         Frame.__init__(self, master)
         self.grid()
@@ -273,11 +277,8 @@ class Application(Frame):
             sys.stdout.write(line+'\n')
         self.quit()
 
-app = Application()
-app.master.title("bezel-11.py by Lawrence Glaister ")
+
+root = tk.Tk()
+app = APP(master=root)
+app.master.title('bezel.py by Lawrence Glaister ' + version)
 app.mainloop()
-
-
-
-
-
